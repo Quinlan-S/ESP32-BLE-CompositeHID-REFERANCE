@@ -1,6 +1,3 @@
-#include "BleCompositeHID.h"
-#include "BleConnectionStatus.h"
-
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -8,6 +5,13 @@
 #include <NimBLEUtils.h>
 #include <NimBLEServer.h>
 #include <NimBLEHIDDevice.h>
+#include <HIDTypes.h>
+//#include <HIDKeyboardTypes.h>
+#include <driver/adc.h>
+#include "sdkconfig.h"
+
+#include "BleConnectionStatus.h"
+#include "BleCompositeHID.h"
 
 #if defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
@@ -109,15 +113,11 @@ void BleCompositeHID::end(void)
 void BleCompositeHID::timedSendDeferredReports(void *pvParameter)
 {
     BleCompositeHID *BleCompositeHIDInstance = (BleCompositeHID *)pvParameter;
-
-    if (BleCompositeHIDInstance->_hid)
-    {
-        std::function<void()> reportFunc;
-        while(BleCompositeHIDInstance->_deferredReports.ConsumeSync(reportFunc)){
-            reportFunc();
-            if(BleCompositeHIDInstance->_configuration.getQueueSendRate() > 0)
-                vTaskDelay((1000 / BleCompositeHIDInstance->_configuration.getQueueSendRate()) / portTICK_PERIOD_MS);
-        }
+    while(true){
+        if(BleCompositeHIDInstance->_configuration.getDeferSendRate() > 0)
+            vTaskDelay((1000 / BleCompositeHIDInstance->_configuration.getDeferSendRate()) / portTICK_PERIOD_MS);
+        
+        BleCompositeHIDInstance->sendDeferredReports();
     }
 }
 
@@ -281,7 +281,7 @@ void BleCompositeHID::taskServer(void *pvParameter)
     BleCompositeHIDInstance->_hid->setBatteryLevel(BleCompositeHIDInstance->batteryLevel);
 
     // Start timed auto send for deferred reports
-    if(BleCompositeHIDInstance->_configuration.getQueuedSending()){
+    if(BleCompositeHIDInstance->_configuration.getThreadedAutoSend()){
         xTaskCreate(BleCompositeHIDInstance->timedSendDeferredReports, "autoSend", 20000, (void *)BleCompositeHIDInstance, 5, &BleCompositeHIDInstance->_autoSendTaskHandle);
     }
 

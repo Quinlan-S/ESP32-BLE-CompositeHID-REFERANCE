@@ -45,11 +45,11 @@ public:
 
     // Set how quickly the auto-send should send queued reports. 
     // A value of 0 will send reports as soon as they are queued.
-    void setQueueSendRate(uint32_t frequency);
-    uint32_t getQueueSendRate() const;
+    void setAutoSendRate(uint32_t frequency);
+    uint32_t getAutoSendRate() const;
 
-    void setQueuedSending(bool value);
-    bool getQueuedSending() const;
+    void setAutoSendActive(bool value);
+    bool getAutoSendActive() const;
 
 private:
     uint32_t _deferSendRate;
