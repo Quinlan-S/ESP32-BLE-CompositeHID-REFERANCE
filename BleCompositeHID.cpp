@@ -110,6 +110,7 @@ void BleCompositeHID::end(void)
     vTaskDelete(this->_autoSendTaskHandle);
 }
 
+/*
 void BleCompositeHID::timedSendDeferredReports(void *pvParameter)
 {
     BleCompositeHID *BleCompositeHIDInstance = (BleCompositeHID *)pvParameter;
@@ -120,6 +121,7 @@ void BleCompositeHID::timedSendDeferredReports(void *pvParameter)
         BleCompositeHIDInstance->sendDeferredReports();
     }
 }
+*/
 
 void BleCompositeHID::addDevice(BaseCompositeDevice *device)
 {
@@ -272,7 +274,7 @@ void BleCompositeHID::taskServer(void *pvParameter)
 
     // Start BLE advertisement
     NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
-    pAdvertising->setAppearance(GENERIC_HID);
+    pAdvertising->setAppearance(HID_GAMEPAD);
     pAdvertising->addServiceUUID(BleCompositeHIDInstance->_hid->hidService()->getUUID());
     pAdvertising->start();
     ESP_LOGD(LOG_TAG, "Advertising started!");
@@ -280,11 +282,12 @@ void BleCompositeHID::taskServer(void *pvParameter)
     // Update battery
     BleCompositeHIDInstance->_hid->setBatteryLevel(BleCompositeHIDInstance->batteryLevel);
 
-    // Start timed auto send for deferred reports
+    /*// Start timed auto send for deferred reports
     if(BleCompositeHIDInstance->_configuration.getThreadedAutoSend()){
         xTaskCreate(BleCompositeHIDInstance->timedSendDeferredReports, "autoSend", 20000, (void *)BleCompositeHIDInstance, 5, &BleCompositeHIDInstance->_autoSendTaskHandle);
     }
-
+    */
+   
     // Wait to let the server start up
     vTaskDelay(portMAX_DELAY);
 }
